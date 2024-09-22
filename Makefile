@@ -26,7 +26,7 @@ help:
 # Run containers in detached mode
 run:
 	@echo "$(BLUE)Starting containers ...$(RESET)"
-	@$(DOCKER_COMPOSE) up -d --force-recreate --build
+	$(DOCKER_COMPOSE) up -d --force-recreate --build
 	@echo "$(GREEN)Containers started$(RESET)"
 
 # Stop all running containers

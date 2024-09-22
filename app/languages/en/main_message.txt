@@ -1,0 +1,17 @@
+Hello! The bot lets you access the best AI models for creating text, images, and songs.
+
+You can use the advanced OpenAI o1, GPT-4o, Claude 3.5, /Midjourney, and /Suno here.
+
+For free: GPT-4o mini and Gemini 1.5 Flash.
+
+The bot can:
+1. Write, rewrite and translate text
+2. Recognize images and files
+3. Generate and edit images
+4. Write and edit code
+5. Solve math problems
+6. Generate songs and music
+
+📝 TEXT: Type your question in the chat. To choose the AI model, click /settings.
+
+

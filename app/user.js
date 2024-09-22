@@ -1,51 +1,62 @@
-const State = {
-    MAIN_MENU:'MAIN_MENU',
-    CHOOSE_MENU:'CHOOSE_MENU'
-}
+const mongoose = require('mongoose');
 
-const Language = {
-    en:'ENGLISH',
-    ru:'RUSSIAN',
-    uz:'UZBEK'
-}
-
-class User {
-    static objects = [];
-    constructor(chat_id) {
-        this.state = State.MAIN_MENU,
-        this.chat_id = chat_id,
-        this.language = Language.ENGLISH,
-        User.objects.push(this)
+const userSchema = new mongoose.Schema({
+    chat_id: {
+        type: Number,
+        required: true,
+        unique: true
+    },
+    state: {
+        type: String,
+        required: true,
+        default: 'MAIN_MENU',
+        enum: ['MAIN_MENU', 'CHOOSE_MENU']
+    },
+    language: {
+        type: String,
+        required: true,
+        default: 'en',
+        enum: ['en', 'ru', 'uz']
     }
+});
 
-    static getUsers() {
-        return User.objects
-    }
-
-    static find(chat_id) {
-        return User.objects.find(user => user.chat_id === chat_id);
-    }
-
-    static findOrCreate(chatId) {
-        let user = User.find(chatId);
+userSchema.statics = {
+    findOrCreate: async function(chat_id) {
+        let user = await User.findOne({ chat_id });
         if (user) {
-            return user;
+        return user;
         }
-        return new User(chatId);
+        user = new User({ chat_id });
+        await user.save();
+        return user;
+    },
+    find: async function find(chat_id) {
+        return await User.findOne({ chat_id });
+    },
+    getUsers: async function () {
+        return User.find();
     }
+}
 
-    setLanguage(lang) {
-        if (!lang in Language) {
-            throw new Error(`Invalid language: ${lang}`);
-        }
+userSchema.methods = {
+    setLanguage: async function (lang) {
         this.language = lang;
-    }
-    setState(state) {
-         if (!Object.values(State).includes(state)) {
-            throw new Error(`Invalid language: ${state}`);
-        }
+    },
+    setState: async function(state) {
         this.state = state;
     }
+}
+
+const User = mongoose.model('User', userSchema);
+
+async function findOrCreateUser(chat_id) {
+  let user = await User.findOne({ chat_id });
+  if (user) {
+    return user;
+  }
+  user = new User({ chat_id });
+  await user.save();
+  return user;
 }
 
 module.exports = {

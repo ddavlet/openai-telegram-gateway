@@ -1,11 +1,15 @@
 // load environment
-// require('dotenv').config({path: '/run/secrets/app_env'});
-require('dotenv').config();
+require('dotenv').config({path: '/run/secrets/app_env'});
+
+// require('dotenv').config();
 // import packages
 const TelegramBot = require('node-telegram-bot-api');
 const markups = require('./replys.js');
-const { User } = require('./user.js');
-const fs = require('fs');
+const {User} = require('./User.js');
+const LanguageLoader = require('./Language.js');
+const fs = require('fs').promises;
+
+const mongoose = require('mongoose');
 
 // setup telegram tocken and listening
 const token = process.env.BOT_TOKEN;
@@ -16,54 +20,96 @@ const cwd = process.cwd();
 console.log("Started");
 
 // setup variables
-let texts = {};
 
-function loadLanguage(lang) {
-  fs.readFile(`${cwd}/languages/${lang}.json`, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error loading JSON:', err);
-      return;
-    }
-    texts = JSON.parse(data);
-    console.log(texts);
-  });
+let active_users = [];
+
+// async function loadLanguage(lang) {
+//   let lang_texts = {};
+//   try {
+//     lang_texts.language_options = await fs.readFile(`${cwd}/languages/${lang}/language_options.txt`, 'utf8');
+//     lang_texts.main_message = await fs.readFile(`${cwd}/languages/${lang}/main_message.txt`, 'utf8');
+//   } catch (err) {
+//     console.log(err);
+//   }
+//   console.log(lang_texts);
+//   return lang_texts;
+// }
+
+// load language module
+
+mongoose.connect(`mongodb://${process.env.DB_ADMIN}:${process.env.DB_PASS}@mongo:27017/app_db?authSource=admin`, {})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error(err));
+
+async function init() {
+  await LanguageLoader.loadLanguage('en', cwd);
+
+  bot.on('message', (msg) => handleIncomingMessage(msg));
+  bot.on('callback_query', (callbackQuery) => handleIncomingQuery(callbackQuery))
 }
 
-loadLanguage('en')
+async function findActiveUser(chat_id) {
+  let user = active_users.find(user => user.chat_id === chat_id);
 
-bot.onText(/\/start/, (msg) => {
-  text = texts.languageOptions;
-  markup = markups.languageOptions;
-  bot.sendMessage(msg.chat.id, text, markup);
-});
+  if (!user) {
+    user = await User.findOrCreate(chat_id);
+    active_users.push(user);
+  }
 
-bot.onText(/\/echo (.+)/, (msg, match) => {
+  return user
+}
 
+async function handleIncomingMessage(msg) {
   const chatId = msg.chat.id;
-  const resp = match[1];
+  const message = msg.text;
 
-  bot.sendMessage(chatId, resp);
-});
+  let user = await findActiveUser(chatId);
+  let texts = LanguageLoader.getLanguage(user.language);
 
-bot.on('message', (msg) => {
-  const chatId = msg.chat.id;
 
-  // send a message to the chat acknowledging receipt of their message
-  bot.sendMessage(chatId, 'Other message');
-});
+  if (message.length == 6 && message.startsWith('/start')) {
+    let text = texts.language_options;
+    let markup = markups.language_options;
+    bot.sendMessage(msg.chat.id, text, markup);
+  } else {
+    bot.sendMessage(msg.chat.id, 'other text');
+  }
 
-bot.on('callback_query', (callbackQuery) => {
+};
+
+async function handleIncomingQuery(callbackQuery) {
   console.log(callbackQuery);
-  const chatId = callbackQuery.from.id;
-  const data = callbackQuery.data;
-  let user = User.findOrCreate(chatId);
-  user.setLanguage(language);
-  user.setState('MAIN_MENU');
-  loadLanguage(language); // Load selected language texts
 
-  bot.sendMessage(chatId, texts.start_message || 'Language selected.');
-  bot.editMessageText();
-});
+  const chat_id = callbackQuery.from.id;
+  const id = callbackQuery.id;
+  const message_id = callbackQuery.message.message_id;
+  const data = callbackQuery.data;
+
+  let user = await findActiveUser(chat_id);
+  let texts = LanguageLoader.getLanguage(user.language);
+
+  if (data.startsWith('lang_')) {
+    let lang = data.substr(5);
+    user.setLanguage(lang);
+    user.setState('MAIN_MENU');
+
+    user.save();
+
+    texts = LanguageLoader.getLanguage(user.language);
+
+    text = texts.main_message;
+
+    bot.editMessageText(text, {chat_id, message_id});
+    // bot.sendMessage(chat_id, text || 'Language selected.');
+    bot.answerCallbackQuery(id);
+    bot.editMessageText();
+  } else if (data.startsWith('sett_')) {
+    let sett = data.substr(5);
+
+  }
+};
+
+init()
 
 bot.on('polling_error', (err) => {
   console.log(err);

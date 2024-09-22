@@ -1,0 +1,7 @@
+In this section, you can:
+1. Select an AI model.
+2. Assign any role or custom instruction the bot will consider when preparing responses.
+3. Turn context maintenance on or off. When the context is on, the bot considers its previous response to conduct a dialogue.
+4. Set up voice responses and select the GPT's voice (available in /premium).
+5. Set up DALL-E 3 image settings.
+6. Select the interface language.
