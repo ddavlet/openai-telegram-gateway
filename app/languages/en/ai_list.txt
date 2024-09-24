@@ -1,0 +1,14 @@
+1. GPT-4 Turbo
+    • Optimized for speed and cost, used for many tasks requiring higher performance.
+2. GPT-4
+    • High-quality, handles complex queries and tasks but is slower and costlier than Turbo.
+3. GPT-3.5 Turbo
+    • A fast, cost-efficient version of GPT-3.5, suitable for general tasks like chating.
+4. GPT-4o
+    • Multimodal (accepting text or image inputs and outputting text), and it has the same high intelligence as GPT-4 Turbo but is much more efficient
+5. GPT-4o Mini
+    • We recommend choosing gpt-4o-mini where you would have previously used gpt-3.5-turbo as this model is more capable and cheaper.
+6. o1-preview and o1-mini
+    • Reasoning model, analysing response for more accurate and precise answer
+
+Choose model:

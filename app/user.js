@@ -17,6 +17,12 @@ const userSchema = new mongoose.Schema({
         required: true,
         default: 'en',
         enum: ['en', 'ru', 'uz']
+    },
+    ai_model: {
+        type: String,
+        require: true,
+        default: 'gpt-4o-mini',
+        enum: ['gpt-4o-mini', 'gpt-4o', 'o1-preview', 'gpt-4-turbo', 'gpt-3.5-turbo']
     }
 });
 

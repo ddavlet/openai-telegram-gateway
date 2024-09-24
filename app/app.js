@@ -6,9 +6,9 @@ require('dotenv').config({path: '/run/secrets/app_env'});
 const TelegramBot = require('node-telegram-bot-api');
 const markups = require('./replys.js');
 const {User} = require('./User.js');
+const handlers = require('./handlers');
 const LanguageLoader = require('./Language.js');
 const fs = require('fs').promises;
-
 const mongoose = require('mongoose');
 
 // setup telegram tocken and listening
@@ -67,9 +67,13 @@ async function handleIncomingMessage(msg) {
   let texts = LanguageLoader.getLanguage(user.language);
 
 
-  if (message.length == 6 && message.startsWith('/start')) {
+  if (message.length == '/start'.length && message.startsWith('/start')) {
     let text = texts.language_options;
     let markup = markups.language_options;
+    bot.sendMessage(msg.chat.id, text, markup);
+  } else if (message.length == '/settings'.length && message.startsWith('/settings')) {
+    let text = texts.settings_menu;
+    let markup = markups.settings_menu;
     bot.sendMessage(msg.chat.id, text, markup);
   } else {
     bot.sendMessage(msg.chat.id, 'other text');
@@ -90,22 +94,12 @@ async function handleIncomingQuery(callbackQuery) {
 
   if (data.startsWith('lang_')) {
     let lang = data.substr(5);
-    user.setLanguage(lang);
-    user.setState('MAIN_MENU');
 
-    user.save();
-
-    texts = LanguageLoader.getLanguage(user.language);
-
-    text = texts.main_message;
-
-    bot.editMessageText(text, {chat_id, message_id});
-    // bot.sendMessage(chat_id, text || 'Language selected.');
-    bot.answerCallbackQuery(id);
-    bot.editMessageText();
+    handlers.lang_handler(user, {lang, chat_id, message_id, id}, bot);
   } else if (data.startsWith('sett_')) {
     let sett = data.substr(5);
 
+    handlers.sett_handler(user, {sett, chat_id, message_id, id}, bot)
   }
 };
 

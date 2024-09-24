@@ -13,12 +13,11 @@ class LanguageLoader {
     }
     try {
       // Load language files and store in the languages object
-      const language_options = await fs.readFile(`${cwd}/languages/${lang}/language_options.txt`, 'utf8');
-      const mainMessage = await fs.readFile(`${cwd}/languages/${lang}/main_message.txt`, 'utf8');
-
       this.languages[lang] = {
-        language_options: language_options,
-        main_message: mainMessage
+        language_options: await fs.readFile(`${cwd}/languages/${lang}/language_options.txt`, 'utf8'),
+        main_message: await fs.readFile(`${cwd}/languages/${lang}/main_message.txt`, 'utf8'),
+        ai_list: await fs.readFile(`${cwd}/languages/${lang}/ai_list.txt`, 'utf8'),
+        settings_menu: await fs.readFile(`${cwd}/languages/${lang}/settings_menu.txt`, 'utf8')
       };
 
       return this.languages[lang];
